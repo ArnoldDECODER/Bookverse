@@ -1,57 +1,59 @@
-const mongoose = require('mongoose'); // Add this for ObjectId conversion
+const Joi = require('joi');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const User = require('../models/usersModel'); // Use the correct import (remove duplicate)
+const Book = require('../models/booksModel');
 const {
-  signupSchema,
   signinSchema,
   acceptCodeSchema,
   changePasswordSchema,
   acceptFPCodeSchema,
-  addToWishlistSchema, // Add these
+  addToWishlistSchema,
   removeFromWishlistSchema,
   updateProfileSchema,
 } = require('../middlewares/validator');
-const User = require('../models/usersModel');
-const Book = require('../models/booksModel'); // Add this for validation
 const { doHash, doHashValidation, hmacProcess } = require('../utils/hashing');
 const transport = require('../middlewares/sendMail');
 
-exports.signup = async (req, res) => {
-  const { email, password } = req.body;
+const signupSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+});
+
+exports.signup = async (req, res, next) => {
   try {
-    const { error, value } = signupSchema.validate({ email, password });
+    const { email, password } = req.body;
 
+    const { error } = signupSchema.validate({ email, password });
     if (error) {
-      return res
-        .status(400)
-        .json({ success: false, message: error.details[0].message });
+      console.log('Validation error:', error.details[0].message); // Add this log
+      return res.status(400).json({ success: false, message: error.details[0].message });
     }
+
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: 'User already exists!' });
+      return res.status(409).json({ success: false, message: 'Email already in use' });
     }
 
-    const hashedPassword = await doHash(password, 12);
+    const hashedPassword = await doHash(password, 10);
+    const user = new User({ email, password: hashedPassword });
+    await user.save();
 
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-    });
-    const result = await newUser.save();
-    result.password = undefined;
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
     res.status(201).json({
       success: true,
       message: 'Your account has been created successfully',
-      result,
+      result: user,
+      token,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Signup error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
-
+// Rest of the file remains unchanged
 exports.signin = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -280,10 +282,12 @@ exports.sendForgotPasswordCode = async (req, res) => {
       const hashedCodeValue = hmacProcess(
         codeValue,
         process.env.HMAC_VERIFICATION_CODE_SECRET
-     = true,
-        res.status(200).json({ success: true, message: 'Code sent!' }));
+      );
+      existingUser.forgotPasswordCode = hashedCodeValue;
+      existingUser.forgotPasswordCodeValidation = Date.now();
+      await existingUser.save();
+      return res.status(200).json({ success: true, message: 'Code sent!' });
     }
-    res.status(400).json({ success: false, message: 'Code sent failed!' });
     res.status(400).json({ success: false, message: 'Code sent failed!' });
   } catch (error) {
     console.log(error);
@@ -358,10 +362,13 @@ exports.verifyForgotPasswordCode = async (req, res) => {
   }
 };
 
-// Wishlist functions
 exports.addToWishlist = async (req, res) => {
   try {
+    const { id } = req.params;
     const { userId } = req.user;
+    if (id !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
     const { bookId } = req.body;
 
     const { error } = addToWishlistSchema.validate({ bookId });
@@ -395,8 +402,11 @@ exports.addToWishlist = async (req, res) => {
 
 exports.removeFromWishlist = async (req, res) => {
   try {
+    const { id, bookId } = req.params;
     const { userId } = req.user;
-    const { bookId } = req.params;
+    if (id !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
 
     const { error } = removeFromWishlistSchema.validate({ bookId });
     if (error) {
@@ -439,10 +449,13 @@ exports.getWishlist = async (req, res) => {
   }
 };
 
-// Update profile function
 exports.updateProfile = async (req, res) => {
   try {
+    const { id } = req.params;
     const { userId } = req.user;
+    if (id !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
     const { email, username } = req.body;
 
     const { error } = updateProfileSchema.validate({ email, username });
@@ -470,6 +483,38 @@ exports.updateProfile = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, message: 'User updated successfully', data: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, message: 'User retrieved', data: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    if (id !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, message: 'User deleted' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: 'Server error' });

@@ -36,7 +36,11 @@ const userSchema = mongoose.Schema(
       type: Number,
       select: false,
     },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }], // Add this
+    username: {
+      type: String,
+      trim: true,
+    },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }],
   },
   {
     timestamps: true,

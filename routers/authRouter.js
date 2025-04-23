@@ -5,7 +5,7 @@ const { identifier } = require('../middlewares/identification');
 const router = express.Router();
 
 console.log('Defining signup route');
-router.post('/signup', (req, res, next) => {
+router.post('/', (req, res, next) => {
   console.log('Signup route hit');
   authController.signup(req, res, next);
 });
@@ -33,11 +33,18 @@ router.post(
 );
 
 // Wishlist routes
-router.post('/wishlist/add', identifier, authController.addToWishlist);
-router.delete('/wishlist/remove/:bookId', identifier, authController.removeFromWishlist);
+router.post('/:id/wishlist', identifier, authController.addToWishlist);
+router.delete('/:id/wishlist/:bookId', identifier, authController.removeFromWishlist);
 router.get('/wishlist', identifier, authController.getWishlist);
 
 // User update route
-router.patch('/update-profile', identifier, authController.updateProfile);
-
+router.put('/:id', identifier, authController.updateProfile);
+//retrieve user details by ID
+router.get('/:id', identifier, authController.getUserById);
+//delete a user by ID
+router.delete('/:id', identifier, authController.deleteUser);
+console.log('Registered auth routes:', router.stack.map(layer => ({
+	path: layer.route?.path,
+	methods: layer.route?.methods
+  })));
 module.exports = router;
