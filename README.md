@@ -1,58 +1,55 @@
-Bookverse
-Overview
+# Bookverse
+
+## Overview
 Bookverse is a Node.js/Express application designed for book enthusiasts to manage their reading lists, wishlists, and user accounts. It provides features for user authentication, profile management, and book-related functionalities, with a MongoDB backend for data storage.
-Features
 
-User Authentication:
-Sign up with email and password.
-Sign in and sign out securely using JWT tokens.
-Email verification with a code sent via email.
-Password management (change password, forgot password with verification code).
+## Features
 
+### User Authentication:
+- Sign up with email and password.
+- Sign in and sign out securely using JWT tokens.
+- Email verification with a code sent via email.
+- Password management (change password, forgot password with verification code).
 
-Wishlist Management:
-Add books to a wishlist.
-Remove books from a wishlist.
-View your wishlist with book details.
+### Wishlist Management:
+- Add books to a wishlist.
+- Remove books from a wishlist.
+- View your wishlist with book details.
 
+### User Profile Management:
+- Update user profile (email, username).
+- Retrieve user details by ID.
+- Delete user account.
 
-User Profile Management:
-Update user profile (email, username).
-Retrieve user details by ID.
-Delete user account.
+### Book Management (assumed based on file structure):
+- Create, read, update, and delete books (CRUD operations).
+- Filter books by genre, author, or other criteria (to be confirmed).
 
+## Tech Stack
+- **Backend:** Node.js, Express
+- **Database:** MongoDB (using Mongoose)
+- **Authentication:** JSON Web Tokens (JWT), bcrypt for password hashing
+- **Validation:** Joi for request validation
+- **Email Service:** Nodemailer for sending verification codes
+- **Environment Variables:** Managed via `.env` file
 
-Book Management (assumed based on file structure):
-Create, read, update, and delete books (CRUD operations).
-Filter books by genre, author, or other criteria (to be confirmed).
+## Setup Instructions
 
-
-
-Tech Stack
-
-Backend: Node.js, Express
-Database: MongoDB (using Mongoose)
-Authentication: JSON Web Tokens (JWT), bcrypt for password hashing
-Validation: Joi for request validation
-Email Service: Nodemailer for sending verification codes
-Environment Variables: Managed via .env file
-
-Setup Instructions
-
-Clone the Repository:
+### Clone the Repository:
+```bash
 git clone https://github.com/ArnoldDECODER/Bookverse.git
 cd Bookverse
+```
 
-
-Install Dependencies:
+### Install Dependencies:
+```bash
 npm install
+```
 
+### Set Up Environment Variables:
 
-Set Up Environment Variables:
-
-Create a .env file in the root directory.
-
-Add the following variables (replace with your values):
+Create a `.env` file in the root directory and add the following variables:
+```
 PORT=8000
 MONGO_URI=mongodb://localhost:27017/bookverse
 JWT_SECRET=your_jwt_secret
@@ -60,618 +57,307 @@ TOKEN_SECRET=your_token_secret
 HMAC_VERIFICATION_CODE_SECRET=your_hmac_secret
 NODE_CODE_SENDING_EMAIL_ADDRESS=your_email@example.com
 NODE_ENV=development
+```
 
+### Run MongoDB:
+Ensure MongoDB is running on your machine (e.g., `mongod`).
 
-
-
-Run MongoDB:
-
-Ensure MongoDB is running on your machine (e.g., mongod).
-
-
-Start the Server:
+### Start the Server:
+```bash
 node index.js
+```
 
-The server will run on http://localhost:8000.
+Server will run on [http://localhost:8000](http://localhost:8000).
 
+## API Endpoints
 
-API Endpoints
+### User Authentication:
+- `POST /api/users`: Sign up a new user
+- `POST /api/users/signin`: Sign in a user
+- `POST /api/users/signout`: Sign out a user
+- `POST /api/users/send-verification-code`: Send a verification code
+- `POST /api/users/verify-verification-code`: Verify the email code
+- `POST /api/users/change-password`: Change user password
+- `POST /api/users/send-forgot-password-code`: Send forgot password code
+- `POST /api/users/verify-forgot-password-code`: Verify forgot password code and reset
 
-User Authentication:
-POST /api/users: Sign up a new user.
-POST /api/users/signin: Sign in a user.
-POST /api/users/signout: Sign out a user (requires authentication).
-POST /api/users/send-verification-code: Send a verification code to the user’s email (requires authentication).
-POST /api/users/verify-verification-code: Verify the code to activate the account (requires authentication).
-POST /api/users/change-password: Change the user’s password (requires authentication).
-POST /api/users/send-forgot-password-code: Send a forgot password code.
-POST /api/users/verify-forgot-password-code: Verify the code and reset the password.
+### Wishlist:
+- `POST /api/users/:id/wishlist`: Add book to wishlist
+- `DELETE /api/users/:id/wishlist/:bookId`: Remove book from wishlist
+- `GET /api/users/wishlist`: View wishlist
 
+### User Profile:
+- `PUT /api/users/:id`: Update user
+- `GET /api/users/:id`: Get user by ID
+- `DELETE /api/users/:id`: Delete user
 
-Wishlist:
-POST /api/users/:id/wishlist: Add a book to the wishlist (requires authentication).
-DELETE /api/users/:id/wishlist/:bookId: Remove a book from the wishlist (requires authentication).
-GET /api/users/wishlist: Get the user’s wishlist (requires authentication).
+### Books:
+- `POST /api/books`: Create a book
+- `GET /api/books`: Get all books
 
+## Testing with Postman
 
-User Profile:
-PUT /api/users/:id: Update user profile (requires authentication).
-GET /api/users/:id: Retrieve user details by ID (requires authentication).
-DELETE /api/users/:id: Delete a user by ID (requires authentication).
+Ensure the server is running on [http://localhost:8000](http://localhost:8000).
 
-
-Books (assumed):
-POST /api/books: Create a new book (to be confirmed).
-GET /api/books: Get all books (to be confirmed).
-
-
-
-Testing with Postman
-Below are examples of how to test each API endpoint using Postman. Ensure the server is running (http://localhost:8000) and MongoDB is connected. For authenticated routes, you’ll need a JWT token, which you can obtain by signing in (POST /api/users/signin).
-User Authentication
-1. Sign Up (POST /api/users)
-
-Method: POST
-
-URL: http://localhost:8000/api/users
-
-Headers:
-
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 1. Sign Up
+**POST** `/api/users`
+```json
 {
-    "email": "testuser@example.com",
-    "password": "Testpass123"
+  "email": "testuser@example.com",
+  "password": "Testpass123"
 }
-
-
-Expected Response:
-
-Status: 201 Created
-
-Body:
+```
+**Response**: 201 Created
+```json
 {
-    "success": true,
-    "message": "Your account has been created successfully",
-    "result": {
-        "_id": "664d8f9b2e5f4a1b2c3d4e5f",
-        "email": "testuser@example.com",
-        "verified": false,
-        "wishlist": [],
-        "createdAt": "2025-04-23T07:00:00.000Z",
-        "updatedAt": "2025-04-23T07:00:00.000Z",
-        "__v": 0
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "success": true,
+  "message": "Your account has been created successfully",
+  "result": { ... },
+  "token": "..."
 }
+```
 
-
-
-
-
-2. Sign In (POST /api/users/signin)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/signin
-
-Headers:
-
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 2. Sign In
+**POST** `/api/users/signin`
+```json
 {
-    "email": "testuser@example.com",
-    "password": "Testpass123"
+  "email": "testuser@example.com",
+  "password": "Testpass123"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "message": "logged in successfully"
+  "success": true,
+  "token": "...",
+  "message": "logged in successfully"
 }
+```
 
-
-Note: Save the token from the response for authenticated requests (e.g., add it as Authorization: Bearer <token> in the headers).
-
-
-
-
-3. Sign Out (POST /api/users/signout)
-
-Method: POST
-URL: http://localhost:8000/api/users/signout
-Headers:
-Authorization: Bearer <token>
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body:
+### 3. Sign Out
+**POST** `/api/users/signout`
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "logged out successfully"
+  "success": true,
+  "message": "logged out successfully"
 }
+```
 
-
-
-
-
-4. Send Verification Code (POST /api/users/send-verification-code)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/send-verification-code
-
-Headers:
-
-Authorization: Bearer <token>
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 4. Send Verification Code
+**POST** `/api/users/send-verification-code`
+```json
 {
-    "email": "testuser@example.com"
+  "email": "testuser@example.com"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Code sent!"
+  "success": true,
+  "message": "Code sent!"
 }
+```
 
-
-Note: Check the email for the verification code (requires a configured email service in .env).
-
-
-
-
-5. Verify Verification Code (POST /api/users/verify-verification-code)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/verify-verification-code
-
-Headers:
-
-Authorization: Bearer <token>
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 5. Verify Verification Code
+**POST** `/api/users/verify-verification-code`
+```json
 {
-    "email": "testuser@example.com",
-    "providedCode": 123456
+  "email": "testuser@example.com",
+  "providedCode": 123456
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "your account has been verified!"
+  "success": true,
+  "message": "your account has been verified!"
 }
+```
 
-
-
-
-
-6. Change Password (POST /api/users/change-password)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/change-password
-
-Headers:
-
-Authorization: Bearer <token>
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 6. Change Password
+**POST** `/api/users/change-password`
+```json
 {
-    "oldPassword": "Testpass123",
-    "newPassword": "Newpass123"
+  "oldPassword": "Testpass123",
+  "newPassword": "Newpass123"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Password updated!!"
+  "success": true,
+  "message": "Password updated!!"
 }
+```
 
-
-
-
-
-7. Send Forgot Password Code (POST /api/users/send-forgot-password-code)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/send-forgot-password-code
-
-Headers:
-
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 7. Send Forgot Password Code
+**POST** `/api/users/send-forgot-password-code`
+```json
 {
-    "email": "testuser@example.com"
+  "email": "testuser@example.com"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Code sent!"
+  "success": true,
+  "message": "Code sent!"
 }
+```
 
-
-
-
-
-8. Verify Forgot Password Code (POST /api/users/verify-forgot-password-code)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/verify-forgot-password-code
-
-Headers:
-
-Content-Type: application/json
-
-
-Body (raw, JSON):
+### 8. Verify Forgot Password Code
+**POST** `/api/users/verify-forgot-password-code`
+```json
 {
-    "email": "testuser@example.com",
-    "providedCode": 123456,
-    "newPassword": "Newpass123"
+  "email": "testuser@example.com",
+  "providedCode": 123456,
+  "newPassword": "Newpass123"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Password updated!!"
+  "success": true,
+  "message": "Password updated!!"
 }
+```
 
+### Wishlist
 
-
-
-
-Wishlist
-1. Add Book to Wishlist (POST /api/users/:id/wishlist)
-
-Method: POST
-
-URL: http://localhost:8000/api/users/664d8f9b2e5f4a1b2c3d4e5f/wishlist
-
-Headers:
-
-Authorization: Bearer <token>
-Content-Type: application/json
-
-
-Body (raw, JSON):
+#### Add to Wishlist
+**POST** `/api/users/:id/wishlist`
+```json
 {
-    "bookId": "664d8f9b2e5f4a1b2c3d4e60"
+  "bookId": "664d8f9b2e5f4a1b2c3d4e60"
 }
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Book added to wishlist"
+  "success": true,
+  "message": "Book added to wishlist"
 }
+```
 
-
-
-
-
-2. Remove Book from Wishlist (DELETE /api/users/:id/wishlist/:bookId)
-
-Method: DELETE
-URL: http://localhost:8000/api/users/664d8f9b2e5f4a1b2c3d4e5f/wishlist/664d8f9b2e5f4a1b2c3d4e60
-Headers:
-Authorization: Bearer <token>
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body:
+#### Remove from Wishlist
+**DELETE** `/api/users/:id/wishlist/:bookId`
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Book removed from wishlist"
+  "success": true,
+  "message": "Book removed from wishlist"
 }
+```
 
-
-
-
-
-3. Get Wishlist (GET /api/users/wishlist)
-
-Method: GET
-URL: http://localhost:8000/api/users/wishlist
-Headers:
-Authorization: Bearer <token>
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body:
+#### Get Wishlist
+**GET** `/api/users/wishlist`
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Wishlist retrieved",
-    "data": [
-        {
-            "_id": "664d8f9b2e5f4a1b2c3d4e60",
-            "title": "Sample Book",
-            "author": "John Doe",
-            "description": "A sample book description",
-            "price": 29.99,
-            "stockQuantity": 10
-        }
-    ]
-}
-
-
-
-
-
-User Profile
-1. Update User Profile (PUT /api/users/:id)
-
-Method: PUT
-
-URL: http://localhost:8000/api/users/664d8f9b2e5f4a1b2c3d4e5f
-
-Headers:
-
-Authorization: Bearer <token>
-Content-Type: application/json
-
-
-Body (raw, JSON):
-{
-    "email": "newemail@example.com",
-    "username": "newusername"
-}
-
-
-Expected Response:
-
-Status: 200 OK
-
-Body:
-{
-    "success": true,
-    "message": "User updated successfully",
-    "data": {
-        "_id": "664d8f9b2e5f4a1b2c3d4e5f",
-        "email": "newemail@example.com",
-        "username": "newusername",
-        "verified": true,
-        "wishlist": [],
-        "createdAt": "2025-04-23T07:00:00.000Z",
-        "updatedAt": "2025-04-23T07:00:00.000Z",
-        "__v": 0
+  "success": true,
+  "message": "Wishlist retrieved",
+  "data": [
+    {
+      "_id": "...",
+      "title": "Sample Book",
+      "author": "John Doe",
+      "description": "A sample book description",
+      "price": 29.99,
+      "stockQuantity": 10
     }
+  ]
 }
+```
 
+### User Profile
 
-
-
-
-2. Retrieve User Details (GET /api/users/:id)
-
-Method: GET
-URL: http://localhost:8000/api/users/664d8f9b2e5f4a1b2c3d4e5f
-Headers:
-Authorization: Bearer <token>
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body:
+#### Update User
+**PUT** `/api/users/:id`
+```json
 {
-    "success": true,
-    "message": "User retrieved",
-    "data": {
-        "_id": "664d8f9b2e5f4a1b2c3d4e5f",
-        "email": "newemail@example.com",
-        "username": "newusername",
-        "verified": true,
-        "wishlist": [],
-        "createdAt": "2025-04-23T07:00:00.000Z",
-        "updatedAt": "2025-04-23T07:00:00.000Z",
-        "__v": 0
-    }
+  "email": "newemail@example.com",
+  "username": "newusername"
 }
-
-
-
-
-
-3. Delete User (DELETE /api/users/:id)
-
-Method: DELETE
-URL: http://localhost:8000/api/users/664d8f9b2e5f4a1b2c3d4e5f
-Headers:
-Authorization: Bearer <token>
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body:
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "User deleted"
+  "success": true,
+  "message": "User updated successfully",
+  "data": { ... }
 }
+```
 
-
-
-
-
-Books (Assumed)
-1. Create a Book (POST /api/books)
-
-Method: POST
-
-URL: http://localhost:8000/api/books
-
-Headers:
-
-Authorization: Bearer <token> (if authentication is required)
-Content-Type: application/json
-
-
-Body (raw, JSON):
+#### Get User
+**GET** `/api/users/:id`
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "title": "Sample Book",
-    "description": "A sample book description",
-    "userId": "664d8f9b2e5f4a1b2c3d4e5f",
-    "author": "John Doe",
-    "ISBN": "1234567890",
-    "genre": "Fiction",
-    "price": 29.99,
-    "stockQuantity": 10
+  "success": true,
+  "message": "User retrieved",
+  "data": { ... }
 }
+```
 
-
-Expected Response:
-
-Status: 201 Created
-
-Body (assumed based on createBookSchema in validator.js):
+#### Delete User
+**DELETE** `/api/users/:id`
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 200 OK
+```json
 {
-    "success": true,
-    "message": "Book created successfully",
-    "data": {
-        "_id": "664d8f9b2e5f4a1b2c3d4e60",
-        "title": "Sample Book",
-        "description": "A sample book description",
-        "userId": "664d8f9b2e5f4a1b2c3d4e5f",
-        "author": "John Doe",
-        "ISBN": "1234567890",
-        "genre": "Fiction",
-        "price": 29.99,
-        "stockQuantity": 10,
-        "createdAt": "2025-04-23T07:00:00.000Z",
-        "updatedAt": "2025-04-23T07:00:00.000Z",
-        "__v": 0
-    }
+  "success": true,
+  "message": "User deleted"
 }
+```
 
+### Books
 
-
-
-
-2. Get All Books (GET /api/books)
-
-Method: GET
-URL: http://localhost:8000/api/books
-Headers:
-Authorization: Bearer <token> (if authentication is required)
-
-
-Body: None
-Expected Response:
-Status: 200 OK
-
-Body (assumed):
+#### Create Book
+**POST** `/api/books`
+```json
 {
-    "success": true,
-    "message": "Books retrieved",
-    "data": [
-        {
-            "_id": "664d8f9b2e5f4a1b2c3d4e60",
-            "title": "Sample Book",
-            "description": "A sample book description",
-            "userId": "664d8f9b2e5f4a1b2c3d4e5f",
-            "author": "John Doe",
-            "ISBN": "1234567890",
-            "genre": "Fiction",
-            "price": 29.99,
-            "stockQuantity": 10,
-            "createdAt": "2025-04-23T07:00:00.000Z",
-            "updatedAt": "2025-04-23T07:00:00.000Z",
-            "__v": 0
-        }
-    ]
+  "title": "Sample Book",
+  "description": "A sample book description",
+  "userId": "...",
+  "author": "John Doe",
+  "ISBN": "1234567890",
+  "genre": "Fiction",
+  "price": 29.99,
+  "stockQuantity": 10
 }
+```
+**Headers**: `Authorization: Bearer <token>`
+**Response**: 201 Created
+```json
+{
+  "success": true,
+  "message": "Book created",
+  "data": { ... }
+}
+```
 
+#### Get All Books
+**GET** `/api/books`
+**Response**: 200 OK
+```json
+{
+  "success": true,
+  "message": "Books retrieved",
+  "data": [ ... ]
+}
+```
 
+---
 
+Feel free to fork this repo and contribute via pull requests. Happy coding!
 
-
-Recent Changes
-
-April 2025:
-Fixed 400 Bad Request in POST /api/users (In Progress):
-Debugged validation issues in the signup endpoint.
-Added debug logs to authController.js to identify the root cause of validation failures.
-Working on resolving schema conflicts and ensuring proper response body display in Postman.
-
-
-Git Workflow Improvements:
-Excluded node_modules from the repository by updating .gitignore.
-Resolved LF will be replaced by CRLF warnings by removing node_modules from Git tracking.
-Fixed git push rejection by pulling remote changes and merging them locally.
-
-
-
-
-Previous Updates (assumed based on project structure):
-Added wishlist functionality for users to manage their favorite books.
-Implemented email verification and forgot password workflows using Nodemailer.
-Enhanced user profile management with update, retrieve, and delete operations.
-
-
-
-
-.
